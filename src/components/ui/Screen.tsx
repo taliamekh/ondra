@@ -5,6 +5,8 @@ import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { BottomTabInset, Spacing, useTheme } from '@/theme';
 
+import { MetallicLayers } from './surfaces';
+
 interface Props {
   children: ReactNode;
   scroll?: boolean;
@@ -15,12 +17,11 @@ interface Props {
 }
 
 /**
- * Themed, safe-area-aware screen container used by every screen.
- *
- * The background is a solid theme color for most themes, but a full-screen
- * gradient for the "texture" themes (Glass / Metallic) — Glass needs something
- * colorful behind it for the frosted cards to blur. Set `scroll` for scrolling
- * content.
+ * Themed, safe-area-aware screen container used by every screen. The whole-app
+ * BACKGROUND is themed here:
+ *   • Metallic -> the entire background is brushed metal (softer glint so cards pop)
+ *   • Glass    -> a colorful gradient (so the frosted glass cards have color to refract)
+ *   • others   -> a solid theme color
  */
 export function Screen({
   children,
@@ -31,10 +32,11 @@ export function Screen({
   contentContainerStyle,
 }: Props) {
   const theme = useTheme();
-  const useGradientBg = theme.surface === 'glass' || theme.surface === 'metallic';
+  const isMetal = theme.surface === 'metallic';
+  const isGlass = theme.surface === 'glass';
   const pad = padded ? { padding: Spacing.three } : null;
 
-  const inner = (
+  const content = (
     <SafeAreaView edges={edges} style={{ flex: 1 }}>
       {scroll ? (
         <ScrollView
@@ -49,12 +51,25 @@ export function Screen({
     </SafeAreaView>
   );
 
-  if (useGradientBg) {
+  // Metallic: the background itself is brushed metal.
+  if (isMetal) {
+    return (
+      <View style={[{ flex: 1, backgroundColor: '#D9DEE4' }, style]}>
+        <MetallicLayers gloss={0.28} />
+        {content}
+      </View>
+    );
+  }
+
+  // Glass: colorful gradient behind the frosted cards.
+  if (isGlass) {
     return (
       <LinearGradient colors={theme.gradient} style={[{ flex: 1 }, style]}>
-        {inner}
+        {content}
       </LinearGradient>
     );
   }
-  return <View style={[{ flex: 1, backgroundColor: theme.colors.bg }, style]}>{inner}</View>;
+
+  // Flat themes: solid background color.
+  return <View style={[{ flex: 1, backgroundColor: theme.colors.bg }, style]}>{content}</View>;
 }

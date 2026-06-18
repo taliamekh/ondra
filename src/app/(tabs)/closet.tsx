@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Brand } from '@/components/Brand';
 import { EmptyState } from '@/components/EmptyState';
 import { GarmentIcon } from '@/components/GarmentIcon';
 import { ItemCard } from '@/components/ItemCard';
 import { ThemeMotif } from '@/components/ThemeMotif';
+import { GlassLayers, MetallicLayers } from '@/components/ui/surfaces';
 import { Button, Chip, IconButton, Screen, Text } from '@/components/ui';
 import { CATEGORIES, categoryById, type CategoryId } from '@/constants/catalog';
 import { useData } from '@/data/DataProvider';
@@ -49,6 +50,7 @@ export default function Closet() {
   };
 
   const heroText = readableOn(theme.gradient[0]);
+  const heroTextured = theme.surface === 'metallic' || theme.surface === 'glass';
   const empty = !loading && (items?.length ?? 0) === 0;
 
   return (
@@ -71,11 +73,22 @@ export default function Closet() {
       </View>
 
       {/* Style-me hero */}
-      <LinearGradient
-        colors={theme.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ borderRadius: theme.radius.xl, padding: Spacing.four, marginBottom: Spacing.four }}>
+      <View style={{ borderRadius: theme.radius.xl, overflow: 'hidden', padding: Spacing.four, marginBottom: Spacing.four }}>
+        {/* Hero background: metal/glass material on those themes, else the theme gradient. */}
+        {heroTextured ? (
+          theme.surface === 'glass' ? (
+            <GlassLayers />
+          ) : (
+            <MetallicLayers />
+          )
+        ) : (
+          <LinearGradient
+            colors={theme.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
         {/* Themes with a creature (Rubber Duck / Cat) show it here in the hero. */}
         {theme.motif ? (
           <View style={{ position: 'absolute', right: 14, top: 14 }}>
@@ -92,7 +105,7 @@ export default function Closet() {
           Outfit ideas for the weather & your plans.
         </Text>
         <Button title="Build an outfit" icon="sparkles" variant="secondary" size="sm" onPress={() => router.push('/outfits')} style={{ alignSelf: 'flex-start' }} />
-      </LinearGradient>
+      </View>
 
       {empty ? (
         <EmptyState

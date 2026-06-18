@@ -1,11 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { useTheme } from '@/theme';
+import { GlassLayers, MetallicLayers } from '@/components/ui/surfaces';
+import { Font, useTheme } from '@/theme';
 
 export default function TabsLayout() {
   const theme = useTheme();
   const c = theme.colors;
+  const isMetal = theme.surface === 'metallic';
+  const isGlass = theme.surface === 'glass';
+  const textured = isMetal || isGlass;
 
   return (
     <Tabs
@@ -13,11 +17,15 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: c.primary,
         tabBarInactiveTintColor: c.textMuted,
+        // On Metallic/Glass the menu bar shows the material; otherwise a solid color.
         tabBarStyle: {
-          backgroundColor: c.bgAlt,
+          backgroundColor: textured ? 'transparent' : c.bgAlt,
           borderTopColor: c.border,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarBackground: textured
+          ? () => (isGlass ? <GlassLayers dark={theme.mode === 'dark'} /> : <MetallicLayers />)
+          : undefined,
+        tabBarLabelStyle: { fontSize: 11, fontFamily: Font.semibold },
       }}>
       <Tabs.Screen
         name="closet"
