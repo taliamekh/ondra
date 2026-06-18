@@ -1,56 +1,122 @@
-# Welcome to your Expo app 👋
+# 👗 Onda
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Your closet, styled.** Onda tracks the clothes you own, builds outfit options for the
+weather and the occasion, stages them on a themeable backdrop, and connects you to a
+style-matched community feed where every piece is shoppable.
 
-## Get started
+Built with **Expo (React Native) + Expo Router**, so the same codebase runs on **iOS,
+Android and the web**. Backed by **Supabase** (Postgres + Auth + Storage) with a graceful
+offline fallback.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## ✨ Features
 
-2. Start the app
+| Area | What works today |
+| --- | --- |
+| **Onboarding** | Pick from **10 themes** + **16 style types**; the whole app reskins live as you choose. |
+| **Themes** | Pink Cute 🎀, Lavender 💜, Light Blue 🩵, Matcha 🍵, Earthy 🌿, Cat 🐈, Rubber Duck 🦆, Mono ⚫, Dark Red 🍷, Emo 🖤 — switchable any time. |
+| **Wardrobe** | Add items manually or by **camera scan**, browse by category, edit name / price / source, mark items *sold out* or *wishlist*. New users get a seeded starter closet. |
+| **Camera scan** | Snap a garment → it's "recognized" and searched on the web for name, price and where to buy (mocked — see below). You can fix any field before saving. |
+| **Outfit generator** | Picks looks from **your real closet**, tuned to **live weather** (Open‑Meteo) + the **occasion** (work, school, date, gym, climbing, party…) + your style profile. Regenerate for more. |
+| **Outfit staging** | View a saved outfit on a backdrop — **white / studio black / red carpet / café / garden / sunset** (the foundation for the 3D avatar). |
+| **Social feed** | Outfits from people whose style matches yours, ranked by a **match score**. Every item has a **"Shop the look"** list with affiliate‑tagged buy links. |
+| **Boards** | Pinterest‑style boards; save looks straight from the feed. |
+| **Profile** | Edit your styles & theme, see your stats, cloud/offline status. |
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🧱 Tech & architecture
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Expo SDK 56 / React Native 0.85 / React 19**, **Expo Router** (file-based routing in `src/app/`).
+- **TypeScript** throughout, strict mode, 0 type errors.
+- **Supabase**: Postgres schema with Row Level Security, Storage buckets, auto profile creation, and a likes-count trigger.
+- **Repository pattern** (`src/data/`): screens depend on a single `Repository` interface with two interchangeable adapters —
+  - `supabaseRepo` (cloud, RLS-scoped to the signed-in user), and
+  - `localRepo` (AsyncStorage offline fallback).
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+  The app boots into cloud mode when Supabase auth is available and **degrades gracefully to local** otherwise, so it always runs.
+- **Theme system** (`src/theme/`): a `ThemeProvider` exposes design tokens (colors, radii, gradients) consumed by a small set of themed primitives in `src/components/ui/`.
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+src/
+  app/                 # Expo Router routes
+    _layout.tsx        # providers + root stack
+    index.tsx          # loading / onboarding gate
+    onboarding.tsx     # theme + style picker
+    (tabs)/            # closet · outfits · feed · boards · profile
+    item/              # add (modal) + edit
+    scan.tsx           # camera scan (modal)
+    outfit/[id].tsx    # staged outfit viewer
+  components/          # ItemCard, OutfitStage, FeedCard, ThemePicker, ui/…
+  data/                # Repository interface + supabase/local adapters + fixtures
+  lib/                 # weather, identify (scan), generator, affiliate, colors
+  theme/               # themes + provider
+  constants/           # style/category/occasion catalog
+  types/               # domain models
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 🚀 Getting started
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm install
 
-## Learn more
+# Web (opens in your browser)
+npm run web
 
-To learn more about developing your project with Expo, look at the following resources:
+# Native (needs the Expo Go app or a simulator)
+npm run ios       # macOS only
+npm run android
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The Supabase URL + publishable key ship with sensible defaults in
+[`src/lib/config.ts`](src/lib/config.ts); override them via a `.env` file (see
+[`.env.example`](.env.example)). The publishable key is safe to expose — the database is
+protected by Row Level Security.
 
-## Join the community
+### Enabling cloud sync (real multi-user)
 
-Join our community of developers creating universal apps.
+The Supabase project is already provisioned (schema, RLS, storage). To turn on cloud
+sync + the multi-user backend, enable one toggle in the Supabase dashboard:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> **Authentication → Sign In / Providers → Anonymous sign-ins → ON**
+
+With it off, Onda runs fully in **offline mode** (everything saved on-device). With it on,
+every device gets a real Supabase user and data syncs to the cloud. The Profile screen
+shows which mode you're in.
+
+---
+
+## 🧪 What's real vs. mocked
+
+- ✅ **Real:** weather (Open‑Meteo, no API key), the outfit generator, theming, all CRUD,
+  Supabase schema/RLS/storage, the data layer.
+- 🟡 **Mocked, with clean swap-in points:**
+  - **Camera scan recognition** ([`src/lib/identify.ts`](src/lib/identify.ts)) simulates a
+    vision + product-search pipeline. Replace the function body with a real
+    image-recognition + retailer-search backend; the UI already consumes the returned shape.
+  - **Affiliate links** ([`src/lib/affiliate.ts`](src/lib/affiliate.ts)) append a simple
+    `ref=onda` tag — swap for a real affiliate network.
+  - **3D avatar** — outfits are currently staged as a flat-lay on selectable backdrops
+    ([`OutfitStage`](src/components/OutfitStage.tsx)); this is the seam where a real 3D
+    body model would slot in.
+  - **Social feed** is seeded with demo users until the community has public outfits.
+- 🖼️ **Photos** picked/captured are stored by local URI for now; wiring uploads to the
+  existing Supabase Storage buckets is the next step for cross-device images.
+
+---
+
+## 🗺️ Roadmap
+
+- Real garment recognition + product search for the camera scan
+- Upload item/outfit photos to Supabase Storage
+- True 3D avatar with body measurements & garment draping
+- Push-notification "morning outfit" scheduling (work / school / gym)
+- "Upgrade my outfit" — photograph your current fit and get add-on recommendations
+- Email/social accounts + following graph for the live feed
+
+---
+
+_Made with 🧵_
