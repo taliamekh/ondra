@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { View } from 'react-native';
 
 import { colorFromString } from '@/lib/colors';
+import { Font } from '@/theme';
 
 import { Text } from './ui';
 
@@ -26,7 +27,7 @@ export function Avatar({ name, url, size = 40 }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-      <Text style={{ fontWeight: '700', color: '#33333A', fontSize: size * 0.42 }}>{initial}</Text>
+      <Text style={{ fontFamily: Font.bold, color: '#33333A', fontSize: size * 0.42 }}>{initial}</Text>
     </View>
   );
 }

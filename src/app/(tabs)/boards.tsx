@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
@@ -26,8 +27,8 @@ function BoardItemTile({ item, size = 72 }: { item: BoardItem; size?: number }) 
         padding: 6,
         justifyContent: 'flex-end',
       }}>
-      <Text style={{ fontSize: 18 }}>📌</Text>
-      <Text variant="caption" muted numberOfLines={2} style={{ fontSize: 10 }}>
+      <Ionicons name="bookmark" size={16} color={theme.colors.textMuted} />
+      <Text variant="caption" muted numberOfLines={2} style={{ fontSize: 10, marginTop: 4 }}>
         {item.note ?? 'Pin'}
       </Text>
     </View>
@@ -100,7 +101,7 @@ export default function Boards() {
       {loading && !boards ? (
         <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 40 }} />
       ) : (boards?.length ?? 0) === 0 ? (
-        <EmptyState emoji="📌" title="No boards yet" subtitle="Make a board for your moods, seasons or trips.">
+        <EmptyState icon="albums-outline" title="No boards yet" subtitle="Make a board for your moods, seasons or trips.">
           <Button title="Create your first board" icon="add" onPress={() => setComposing(true)} full />
         </EmptyState>
       ) : (

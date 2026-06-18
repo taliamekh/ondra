@@ -1,6 +1,6 @@
 import { Text as RNText, type TextProps, type TextStyle } from 'react-native';
 
-import { useTheme } from '@/theme';
+import { Font, useTheme } from '@/theme';
 
 export type TextVariant =
   | 'display'
@@ -13,14 +13,14 @@ export type TextVariant =
   | 'button';
 
 const VARIANTS: Record<TextVariant, TextStyle> = {
-  display: { fontSize: 34, fontWeight: '800', letterSpacing: -0.5 },
-  title: { fontSize: 27, fontWeight: '800', letterSpacing: -0.4 },
-  heading: { fontSize: 21, fontWeight: '700', letterSpacing: -0.2 },
-  subtitle: { fontSize: 17, fontWeight: '600' },
-  body: { fontSize: 15, fontWeight: '400', lineHeight: 21 },
-  label: { fontSize: 13, fontWeight: '600' },
-  caption: { fontSize: 12, fontWeight: '500' },
-  button: { fontSize: 15, fontWeight: '700' },
+  display: { fontFamily: Font.extrabold, fontSize: 34, letterSpacing: -0.8 },
+  title: { fontFamily: Font.extrabold, fontSize: 26, letterSpacing: -0.6 },
+  heading: { fontFamily: Font.bold, fontSize: 20, letterSpacing: -0.4 },
+  subtitle: { fontFamily: Font.semibold, fontSize: 16.5, letterSpacing: -0.2 },
+  body: { fontFamily: Font.regular, fontSize: 15, lineHeight: 21 },
+  label: { fontFamily: Font.semibold, fontSize: 13 },
+  caption: { fontFamily: Font.medium, fontSize: 12 },
+  button: { fontFamily: Font.bold, fontSize: 15 },
 };
 
 interface Props extends TextProps {

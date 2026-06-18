@@ -5,6 +5,7 @@ import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Brand } from '@/components/Brand';
+import { GarmentIcon } from '@/components/GarmentIcon';
 import { ThemePicker } from '@/components/ThemePicker';
 import { Button, Chip, IconButton, Input, Text } from '@/components/ui';
 import { STYLE_TYPES, type StyleId } from '@/constants/catalog';
@@ -90,7 +91,11 @@ export default function Onboarding() {
           showsVerticalScrollIndicator={false}>
           {step === 0 && (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
-              <Text style={{ fontSize: 64 }}>👗✨</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {(['top', 'dress', 'bag', 'shoes'] as const).map((c) => (
+                  <GarmentIcon key={c} category={c} color={theme.colors.primary} size={42} strokeWidth={1.6} />
+                ))}
+              </View>
               <Brand size={56} />
               <Text variant="title" center>
                 Your closet, styled.
@@ -104,7 +109,7 @@ export default function Onboarding() {
 
           {step === 1 && (
             <View style={{ gap: Spacing.three }}>
-              <Text variant="title">Pick your vibe ✨</Text>
+              <Text variant="title">Pick your vibe</Text>
               <Text variant="body" muted>
                 This themes the whole app. Tap to preview — you can change it anytime.
               </Text>
@@ -120,13 +125,7 @@ export default function Onboarding() {
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                 {STYLE_TYPES.map((s) => (
-                  <Chip
-                    key={s.id}
-                    label={s.label}
-                    emoji={s.emoji}
-                    selected={styles.has(s.id)}
-                    onPress={() => toggleStyle(s.id)}
-                  />
+                  <Chip key={s.id} label={s.label} selected={styles.has(s.id)} onPress={() => toggleStyle(s.id)} />
                 ))}
               </View>
             </View>
@@ -176,7 +175,7 @@ export default function Onboarding() {
           />
           {step === 2 ? (
             <Text variant="caption" muted center>
-              {styles.size === 0 ? 'Pick at least one to continue' : 'Nice picks 💫'}
+              {styles.size === 0 ? 'Pick at least one to continue' : 'Nice picks'}
             </Text>
           ) : null}
         </View>

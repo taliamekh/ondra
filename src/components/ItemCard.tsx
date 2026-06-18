@@ -2,7 +2,7 @@ import { Pressable, View } from 'react-native';
 
 import { categoryById } from '@/constants/catalog';
 import { tileColor } from '@/lib/colors';
-import { useTheme } from '@/theme';
+import { Font, useTheme } from '@/theme';
 import type { ClothingItem } from '@/types/models';
 
 import { ItemTile } from './ItemTile';
@@ -26,7 +26,7 @@ function Badge({ label, color, bg }: { label: string; color: string; bg: string 
         borderRadius: 999,
         backgroundColor: bg,
       }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', color }}>{label}</Text>
+      <Text style={{ fontSize: 10, fontFamily: Font.bold, color }}>{label}</Text>
     </View>
   );
 }
@@ -41,7 +41,7 @@ export function ItemCard({ item, width, onPress }: Props) {
         <ItemTile
           imageUrl={item.imageUrl}
           color={tileColor(item.colors)}
-          emoji={cat.emoji}
+          category={item.category}
           size={width}
           radius={theme.radius.lg}
         />

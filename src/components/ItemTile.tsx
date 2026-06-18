@@ -1,22 +1,23 @@
 import { Image } from 'expo-image';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { isHex } from '@/lib/colors';
+import { isHex, readableOn } from '@/lib/colors';
 import { useTheme } from '@/theme';
 
-import { Text } from './ui';
+import { GarmentIcon } from './GarmentIcon';
 
 interface Props {
   imageUrl?: string | null;
   color?: string | null;
-  emoji?: string;
+  category?: string;
   size?: number;
   radius?: number;
   style?: StyleProp<ViewStyle>;
 }
 
-/** Square thumbnail for a garment — a photo if available, else a colored tile. */
-export function ItemTile({ imageUrl, color, emoji = '👗', size = 80, radius, style }: Props) {
+/** Square thumbnail for a garment — a photo if available, else a colored tile
+ *  with the category's garment icon. */
+export function ItemTile({ imageUrl, color, category = 'other', size = 80, radius, style }: Props) {
   const theme = useTheme();
   const r = radius ?? theme.radius.md;
 
@@ -31,14 +32,22 @@ export function ItemTile({ imageUrl, color, emoji = '👗', size = 80, radius, s
     );
   }
 
-  const bg = isHex(color) ? color : theme.colors.bgInset;
+  const hasColor = isHex(color);
+  const bg = hasColor ? (color as string) : theme.colors.bgInset;
+  const iconColor = hasColor ? readableOn(color as string) : theme.colors.textMuted;
+
   return (
     <View
       style={[
         { width: size, height: size, borderRadius: r, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' },
         style,
       ]}>
-      <Text style={{ fontSize: size * 0.42 }}>{emoji}</Text>
+      <GarmentIcon
+        category={category}
+        color={iconColor}
+        size={Math.round(size * 0.5)}
+        strokeWidth={Math.max(1.4, size * 0.02)}
+      />
     </View>
   );
 }

@@ -7,7 +7,8 @@ import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import { ItemTile } from '@/components/ItemTile';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Button, Card, Chip, Screen, Text } from '@/components/ui';
-import { categoryById } from '@/constants/catalog';
+import { Ionicons } from '@expo/vector-icons';
+
 import { identifyGarment, type IdentifiedGarment, type IdentifyResult } from '@/lib/identify';
 import { Spacing, useTheme } from '@/theme';
 
@@ -88,7 +89,7 @@ export default function Scan() {
             </View>
           ) : (
             <Card style={{ alignItems: 'center', gap: 12, paddingVertical: 36 }}>
-              <Text style={{ fontSize: 46 }}>📷</Text>
+              <Ionicons name="camera-outline" size={48} color={theme.colors.primary} />
               <Text variant="subtitle" center>
                 Snap a clothing item
               </Text>
@@ -112,7 +113,7 @@ export default function Scan() {
           {image ? (
             <ItemTile imageUrl={image} size={160} radius={theme.radius.xl} />
           ) : (
-            <Text style={{ fontSize: 56 }}>🔍</Text>
+            <Ionicons name="search-outline" size={52} color={theme.colors.primary} />
           )}
           <ActivityIndicator color={theme.colors.primary} />
           <Text variant="body" muted center>
@@ -124,7 +125,7 @@ export default function Scan() {
       {phase === 'result' && chosen && (
         <View style={{ gap: Spacing.three }}>
           <View style={{ alignItems: 'center' }}>
-            <ItemTile imageUrl={image} color={chosen.colors?.[0]} emoji={categoryById(chosen.category).emoji} size={150} radius={theme.radius.xl} />
+            <ItemTile imageUrl={image} color={chosen.colors?.[0]} category={chosen.category} size={150} radius={theme.radius.xl} />
           </View>
 
           <Card style={{ gap: 6 }}>

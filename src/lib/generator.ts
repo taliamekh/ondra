@@ -164,7 +164,7 @@ function outfitTitle(opts: GenOptions, idx: number): string {
   const occ = occasionById(opts.occasion);
   const vibes = ['Option', 'Take', 'Look', 'Pick'];
   const temp = opts.weather ? ` · ${opts.weather.tempC}°` : '';
-  return `${occ.emoji} ${occ.label}${temp} — ${vibes[idx % vibes.length]} ${idx + 1}`;
+  return `${occ.label}${temp} · ${vibes[idx % vibes.length]} ${idx + 1}`;
 }
 
 function buildRationale(ctx: Ctx, opts: GenOptions): string[] {

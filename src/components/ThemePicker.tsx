@@ -54,9 +54,7 @@ export function ThemePicker({ value, onSelect }: Props) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}>
-                <Text variant="label">
-                  {t.emoji} {t.name}
-                </Text>
+                <Text variant="label">{t.name}</Text>
                 {selected ? <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} /> : null}
               </View>
             </View>

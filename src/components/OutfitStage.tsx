@@ -49,13 +49,7 @@ export function OutfitStage({ items, background = 'white', height = 240, figure 
       {figure ? (
         <View style={{ alignItems: 'center', gap: 8 }}>
           {ordered.map((it, i) => (
-            <ItemTile
-              key={i}
-              imageUrl={it.imageUrl}
-              color={it.colors?.[0]}
-              emoji={categoryById(it.category ?? 'other').emoji}
-              size={tile}
-            />
+            <ItemTile key={i} imageUrl={it.imageUrl} color={it.colors?.[0]} category={it.category ?? 'other'} size={tile} />
           ))}
         </View>
       ) : (

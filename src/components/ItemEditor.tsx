@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Switch, View } from 'react-native';
 
-import { CATEGORIES, categoryById, type CategoryId, type OccasionId, type SeasonId } from '@/constants/catalog';
+import { CATEGORIES, type CategoryId, type OccasionId, type SeasonId } from '@/constants/catalog';
 import type { StyleId } from '@/constants/catalog';
 import { isHex } from '@/lib/colors';
 import { Spacing, useTheme } from '@/theme';
 import type { NewClothingItem } from '@/data/repository';
 
+import { GarmentIcon } from './GarmentIcon';
 import { ItemTile } from './ItemTile';
 import { Button, Card, Chip, Input, Text } from './ui';
 
@@ -130,7 +131,7 @@ export function ItemEditor({ initial = {}, submitLabel = 'Save item', onSubmit, 
         <ItemTile
           imageUrl={initial.imageUrl}
           color={colors.find(isHex)}
-          emoji={categoryById(category).emoji}
+          category={category}
           size={140}
           radius={theme.radius.xl}
         />
@@ -147,7 +148,14 @@ export function ItemEditor({ initial = {}, submitLabel = 'Save item', onSubmit, 
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {CATEGORIES.map((c) => (
-            <Chip key={c.id} label={c.label} emoji={c.emoji} selected={category === c.id} onPress={() => setCategory(c.id)} size="sm" />
+            <Chip
+              key={c.id}
+              label={c.label}
+              leading={(col) => <GarmentIcon category={c.id} color={col} size={16} />}
+              selected={category === c.id}
+              onPress={() => setCategory(c.id)}
+              size="sm"
+            />
           ))}
         </ScrollView>
       </View>

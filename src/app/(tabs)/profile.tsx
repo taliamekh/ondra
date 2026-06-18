@@ -85,7 +85,7 @@ export default function Profile() {
       <SectionHeader title="Your style" />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: Spacing.four }}>
         {STYLE_TYPES.map((s) => (
-          <Chip key={s.id} label={s.label} emoji={s.emoji} selected={styles.has(s.id)} onPress={() => toggleStyle(s.id)} size="sm" />
+          <Chip key={s.id} label={s.label} selected={styles.has(s.id)} onPress={() => toggleStyle(s.id)} size="sm" />
         ))}
       </View>
 
@@ -107,7 +107,7 @@ export default function Profile() {
       </Card>
 
       <Text variant="caption" muted center style={{ marginTop: Spacing.four }}>
-        onda · made with 🧵
+        onda · your closet, styled
       </Text>
     </Screen>
   );

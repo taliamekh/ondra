@@ -1,4 +1,4 @@
-import { useTheme } from '@/theme';
+import { Font, useTheme } from '@/theme';
 
 import { Text } from './ui';
 
@@ -6,7 +6,7 @@ import { Text } from './ui';
 export function Brand({ size = 26, color }: { size?: number; color?: string }) {
   const theme = useTheme();
   return (
-    <Text style={{ fontSize: size, fontWeight: '800', letterSpacing: -1, color: color ?? theme.colors.primary }}>
+    <Text style={{ fontSize: size, fontFamily: Font.extrabold, letterSpacing: -1, color: color ?? theme.colors.primary }}>
       onda
     </Text>
   );

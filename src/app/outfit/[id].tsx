@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { ItemTile } from '@/components/ItemTile';
 import { OutfitStage } from '@/components/OutfitStage';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Button, Card, Chip, IconButton, Screen, Text } from '@/components/ui';
-import { BACKGROUNDS, categoryById, occasionById, type BackgroundId } from '@/constants/catalog';
+import { BACKGROUNDS, occasionById, type BackgroundId } from '@/constants/catalog';
 import { useData } from '@/data/DataProvider';
 import { useFocusQuery } from '@/hooks/useFocusQuery';
 import { affiliateUrl } from '@/lib/affiliate';
@@ -79,10 +80,13 @@ export default function OutfitDetail() {
       {/* Meta */}
       <Card style={{ marginTop: Spacing.three, gap: 10 }}>
         {outfit.occasion ? (
-          <Text variant="body">
-            {occasionById(outfit.occasion).emoji} {occasionById(outfit.occasion).label}
-            {outfit.weather ? ` · ${outfit.weather.tempC}° ${outfit.weather.condition}` : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name={occasionById(outfit.occasion).icon} size={18} color={theme.colors.primary} />
+            <Text variant="body">
+              {occasionById(outfit.occasion).label}
+              {outfit.weather ? ` · ${outfit.weather.tempC}° ${outfit.weather.condition}` : ''}
+            </Text>
+          </View>
         ) : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1, paddingRight: 12 }}>
@@ -108,7 +112,7 @@ export default function OutfitDetail() {
           const s = it.snapshot;
           return (
             <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <ItemTile imageUrl={s.imageUrl} color={s.colors?.[0]} emoji={categoryById(s.category ?? 'other').emoji} size={50} />
+              <ItemTile imageUrl={s.imageUrl} color={s.colors?.[0]} category={s.category ?? 'other'} size={50} />
               <View style={{ flex: 1 }}>
                 <Text variant="label" numberOfLines={1}>
                   {s.name}

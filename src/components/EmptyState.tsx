@@ -1,19 +1,35 @@
-import { type ReactNode } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { type ComponentProps, type ReactNode } from 'react';
 import { View } from 'react-native';
+
+import { useTheme } from '@/theme';
 
 import { Text } from './ui';
 
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
 interface Props {
-  emoji: string;
+  icon: IconName;
   title: string;
   subtitle?: string;
   children?: ReactNode;
 }
 
-export function EmptyState({ emoji, title, subtitle, children }: Props) {
+export function EmptyState({ icon, title, subtitle, children }: Props) {
+  const theme = useTheme();
   return (
-    <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 24, gap: 10 }}>
-      <Text style={{ fontSize: 46 }}>{emoji}</Text>
+    <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 24, gap: 12 }}>
+      <View
+        style={{
+          width: 76,
+          height: 76,
+          borderRadius: 38,
+          backgroundColor: theme.colors.bgInset,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Ionicons name={icon} size={34} color={theme.colors.primary} />
+      </View>
       <Text variant="subtitle" center>
         {title}
       </Text>

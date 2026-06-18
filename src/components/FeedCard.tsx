@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { categoryById, STYLE_TYPES } from '@/constants/catalog';
+import { STYLE_TYPES } from '@/constants/catalog';
 import { affiliateUrl } from '@/lib/affiliate';
 import { useTheme } from '@/theme';
 import type { FeedPost } from '@/types/models';
@@ -106,12 +106,7 @@ export function FeedCard({ post, onSave }: Props) {
               const s = it.snapshot;
               return (
                 <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <ItemTile
-                    imageUrl={s.imageUrl}
-                    color={s.colors?.[0]}
-                    emoji={categoryById(s.category ?? 'other').emoji}
-                    size={46}
-                  />
+                  <ItemTile imageUrl={s.imageUrl} color={s.colors?.[0]} category={s.category ?? 'other'} size={46} />
                   <View style={{ flex: 1 }}>
                     <Text variant="label" numberOfLines={1}>
                       {s.name}

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
@@ -16,7 +17,7 @@ function WeatherBar({ weather, loading, onRefresh }: { weather: WeatherNow | nul
   const theme = useTheme();
   return (
     <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontSize: 34 }}>{weather?.emoji ?? '🌡️'}</Text>
+      <Ionicons name={(weather?.icon ?? 'partly-sunny-outline') as any} size={32} color={theme.colors.primary} />
       <View style={{ flex: 1 }}>
         {loading && !weather ? (
           <Text variant="body" muted>
@@ -144,13 +145,20 @@ export default function Outfits() {
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
               {OCCASIONS.map((o) => (
-                <Chip key={o.id} label={o.label} emoji={o.emoji} selected={occasion === o.id} onPress={() => onOccasion(o.id)} size="sm" />
+                <Chip
+                  key={o.id}
+                  label={o.label}
+                  leading={(col) => <Ionicons name={o.icon} size={15} color={col} />}
+                  selected={occasion === o.id}
+                  onPress={() => onOccasion(o.id)}
+                  size="sm"
+                />
               ))}
             </ScrollView>
           </View>
 
           {closetEmpty ? (
-            <EmptyState emoji="👚" title="Add clothes to get outfits" subtitle="Onda builds looks from items in your closet.">
+            <EmptyState icon="shirt-outline" title="Add clothes to get outfits" subtitle="Onda builds looks from items in your closet.">
               <Button title="Go to closet" icon="shirt" onPress={() => router.push('/closet')} full />
             </EmptyState>
           ) : (
@@ -205,7 +213,7 @@ export default function Outfits() {
           {saved.loading && !saved.data ? (
             <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 40 }} />
           ) : (saved.data?.length ?? 0) === 0 ? (
-            <EmptyState emoji="🗂️" title="No saved outfits yet" subtitle="Generate looks and tap Save to keep them here." />
+            <EmptyState icon="albums-outline" title="No saved outfits yet" subtitle="Generate looks and tap Save to keep them here." />
           ) : (
             saved.data!.map((o) => (
               <Card key={o.id} onPress={() => router.push(`/outfit/${o.id}`)} style={{ gap: 10 }}>
