@@ -8,6 +8,7 @@ import { Brand } from '@/components/Brand';
 import { EmptyState } from '@/components/EmptyState';
 import { GarmentIcon } from '@/components/GarmentIcon';
 import { ItemCard } from '@/components/ItemCard';
+import { ThemeMotif } from '@/components/ThemeMotif';
 import { Button, Chip, IconButton, Screen, Text } from '@/components/ui';
 import { CATEGORIES, categoryById, type CategoryId } from '@/constants/catalog';
 import { useData } from '@/data/DataProvider';
@@ -75,6 +76,12 @@ export default function Closet() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ borderRadius: theme.radius.xl, padding: Spacing.four, marginBottom: Spacing.four }}>
+        {/* Themes with a creature (Rubber Duck / Cat) show it here in the hero. */}
+        {theme.motif ? (
+          <View style={{ position: 'absolute', right: 14, top: 14 }}>
+            <ThemeMotif motif={theme.motif} size={60} />
+          </View>
+        ) : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Ionicons name="sparkles" size={18} color={heroText} />
           <Text variant="subtitle" color={heroText}>

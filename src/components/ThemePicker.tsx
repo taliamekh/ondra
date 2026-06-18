@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 
 import { THEME_ORDER, THEMES, useTheme, type ThemeKey } from '@/theme';
 
+import { ThemeMotif } from './ThemeMotif';
 import { Text } from './ui';
 
 interface Props {
@@ -31,6 +32,11 @@ export function ThemePicker({ value, onSelect }: Props) {
                 overflow: 'hidden',
               }}>
               <LinearGradient colors={t.gradient} style={{ height: 60, justifyContent: 'flex-end', padding: 8 }}>
+                {t.motif ? (
+                  <View style={{ position: 'absolute', right: 6, top: 4 }}>
+                    <ThemeMotif motif={t.motif} size={34} />
+                  </View>
+                ) : null}
                 <View style={{ flexDirection: 'row', gap: 5 }}>
                   {[t.colors.primary, t.colors.secondary, t.colors.accent].map((col, i) => (
                     <View

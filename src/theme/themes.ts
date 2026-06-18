@@ -1,10 +1,44 @@
 /**
- * Onda's themes. Each theme reskins the entire app — chosen during onboarding
- * and changeable any time in Profile. Backgrounds are intentionally saturated so
- * switching theme transforms the whole screen, not just an accent.
- * Add a new theme by adding an entry to THEMES and listing its key in THEME_ORDER.
+ * ============================================================================
+ *  ONDA THEMES  —  the look of the whole app lives here
+ * ============================================================================
+ *
+ * Each "theme" is a full set of colors (plus a few extras) that reskins the
+ * entire app. The one the user picks in onboarding / Profile is applied
+ * everywhere automatically.
+ *
+ * ----------------------------------------------------------------------------
+ *  HOW TO EDIT A THEME'S COLORS
+ * ----------------------------------------------------------------------------
+ *  Find the theme below (e.g. `earthy:`) and change the hex codes in its
+ *  `colors: { ... }` block. The most impactful ones:
+ *    • bg        -> the big background color you see behind everything
+ *    • text      -> the main text color
+ *    • primary   -> buttons, links, highlights ("the main colour")
+ *    • secondary -> a supporting accent
+ *  Hex codes look like '#5A3E27'. Tip: a site like https://coolors.co helps you
+ *  pick colors that go together.
+ *
+ * ----------------------------------------------------------------------------
+ *  HOW TO ADD A NEW THEME
+ * ----------------------------------------------------------------------------
+ *  1. Add its key to the `ThemeKey` union just below.
+ *  2. Add a new block in `THEMES` (copy an existing one and change the colors
+ *     + `name`).
+ *  3. Add its key to `THEME_ORDER` so it shows up in the theme picker.
+ *
+ * ----------------------------------------------------------------------------
+ *  SPECIAL "TEXTURE" THEMES
+ * ----------------------------------------------------------------------------
+ *  `surface` controls how cards are drawn:
+ *    • undefined / 'flat' -> normal solid color (most themes)
+ *    • 'metallic'         -> brushed-metal gradient (see Card.tsx)
+ *    • 'glass'            -> frosted, see-through blur (see Card.tsx + Screen.tsx)
+ *  `motif` shows a little creature on the theme (duck / cat).
+ * ============================================================================
  */
 
+// Every theme has a key (its id). To add a theme, add its id here too.
 export type ThemeKey =
   | 'pink_cute'
   | 'earthy'
@@ -15,27 +49,38 @@ export type ThemeKey =
   | 'cat'
   | 'matcha'
   | 'lavender'
-  | 'mono';
+  | 'mono'
+  | 'metallic'
+  | 'glass';
 
+// 'light' = dark text on light backgrounds; 'dark' = light text on dark ones.
 export type ThemeMode = 'light' | 'dark';
 
+// Texture style for cards/surfaces. Most themes are 'flat'.
+export type ThemeSurface = 'flat' | 'metallic' | 'glass';
+
+// Optional decorative creature shown on a theme.
+export type ThemeMotif = 'duck' | 'cat';
+
+/** Every color the app uses. Edit these hex codes to recolor a theme. */
 export interface ThemeColors {
-  bg: string; // app background (saturated, theme-defining)
-  bgAlt: string; // elevated surfaces / cards
-  bgInset: string; // inputs, wells, chips, pressed states
-  primary: string; // brand / primary CTA
-  onPrimary: string; // text + icons sitting on `primary`
-  secondary: string; // secondary accent
-  accent: string; // highlights / pops
-  text: string; // primary text
-  textMuted: string; // secondary text
-  border: string; // hairlines
-  like: string; // hearts / likes
-  success: string;
-  danger: string;
-  shadow: string; // card shadow color (rgba)
+  bg: string; // the main app background (biggest color on screen)
+  bgAlt: string; // cards and raised surfaces (usually lighter than bg)
+  bgInset: string; // inputs, chips, wells, pressed states
+  primary: string; // THE main color: buttons, links, highlights
+  onPrimary: string; // text/icons that sit ON TOP of `primary` (keep it readable)
+  secondary: string; // a supporting accent color
+  accent: string; // an extra pop color used sparingly
+  text: string; // main text color
+  textMuted: string; // secondary / less-important text
+  border: string; // thin lines and card outlines
+  like: string; // heart / like color
+  success: string; // "good" color (confirmations)
+  danger: string; // "bad" color (delete, errors)
+  shadow: string; // card drop-shadow color (use rgba so it can be see-through)
 }
 
+/** Corner roundness. Bigger = softer/rounder. */
 export interface ThemeRadius {
   sm: number;
   md: number;
@@ -44,21 +89,29 @@ export interface ThemeRadius {
   pill: number;
 }
 
+/** A complete theme. */
 export interface ThemeTokens {
   key: ThemeKey;
-  name: string;
+  name: string; // shown in the theme picker
   mode: ThemeMode;
   colors: ThemeColors;
-  /** Background gradient (top → bottom) used on hero surfaces. */
-  gradient: [string, string];
+  gradient: [string, string]; // top -> bottom gradient used on hero areas
   radius: ThemeRadius;
+  surface?: ThemeSurface; // texture style for cards (default 'flat')
+  surfaceGradient?: [string, string, string]; // metallic sheen (3 colors)
+  motif?: ThemeMotif; // a creature shown on this theme
 }
 
-const round: ThemeRadius = { sm: 12, md: 18, lg: 24, xl: 32, pill: 999 };
-const soft: ThemeRadius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 };
-const sharp: ThemeRadius = { sm: 8, md: 12, lg: 16, xl: 22, pill: 999 };
+// Three roundness presets you can reuse. (sm..xl are corner sizes in pixels.)
+const round: ThemeRadius = { sm: 12, md: 18, lg: 24, xl: 32, pill: 999 }; // very rounded
+const soft: ThemeRadius = { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 }; // medium
+const sharp: ThemeRadius = { sm: 8, md: 12, lg: 16, xl: 22, pill: 999 }; // crisp
 
+// ============================================================================
+//  THE THEMES  —  edit the hex codes in any `colors` block to recolor a theme
+// ============================================================================
 export const THEMES: Record<ThemeKey, ThemeTokens> = {
+  // --- Pink Cute: soft pink, playful ----------------------------------------
   pink_cute: {
     key: 'pink_cute',
     name: 'Pink Cute',
@@ -82,6 +135,8 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(190,60,110,0.18)',
     },
   },
+
+  // --- Lavender: soft purple ------------------------------------------------
   lavender: {
     key: 'lavender',
     name: 'Lavender',
@@ -105,6 +160,8 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(110,70,180,0.18)',
     },
   },
+
+  // --- Light Blue: airy sky -------------------------------------------------
   light_blue: {
     key: 'light_blue',
     name: 'Light Blue',
@@ -128,6 +185,8 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(30,110,170,0.18)',
     },
   },
+
+  // --- Matcha: soft green ---------------------------------------------------
   matcha: {
     key: 'matcha',
     name: 'Matcha',
@@ -151,34 +210,40 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(80,120,50,0.18)',
     },
   },
+
+  // --- Earthy: DARK BROWN + SAGE GREEN (the two main colors) -----------------
+  // bg is a soft sage; primary/text are dark brown; secondary is sage green.
   earthy: {
     key: 'earthy',
     name: 'Earthy',
     mode: 'light',
     radius: soft,
-    gradient: ['#D2AC78', '#E2C9A3'],
+    gradient: ['#5E4128', '#9CAF73'], // dark brown -> sage (shows both main colors)
     colors: {
-      bg: '#E2C9A3',
-      bgAlt: '#FBF3E6',
-      bgInset: '#EAD9BE',
-      primary: '#A85A2C',
-      onPrimary: '#FFF6EC',
-      secondary: '#8C9A5B',
-      accent: '#C8893A',
-      text: '#3A2A1A',
-      textMuted: '#7A6648',
-      border: '#E0CDA8',
-      like: '#BB4D2E',
+      bg: '#CBD3B2', // soft sage background (not beige)
+      bgAlt: '#F4F2E2', // warm cream cards
+      bgInset: '#DCE0C4', // sage-tinted inputs/chips
+      primary: '#5A3E27', // DARK BROWN — the main color (buttons, highlights)
+      onPrimary: '#FAF6EC',
+      secondary: '#7E8C4F', // SAGE GREEN — the second main color
+      accent: '#8FA05A', // lighter sage
+      text: '#2C2015', // espresso brown text
+      textMuted: '#6E6047',
+      border: '#C5CCA6',
+      like: '#B0563A',
       success: '#6E8B4E',
       danger: '#B5503F',
-      shadow: 'rgba(120,80,40,0.18)',
+      shadow: 'rgba(70,60,30,0.2)',
     },
   },
+
+  // --- Cat: warm gingers + cream (has a cat motif) --------------------------
   cat: {
     key: 'cat',
     name: 'Cat',
     mode: 'light',
     radius: round,
+    motif: 'cat', // shows a cat on this theme
     gradient: ['#D6B98D', '#E6D2B8'],
     colors: {
       bg: '#E6D2B8',
@@ -197,20 +262,23 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(120,80,50,0.18)',
     },
   },
+
+  // --- Rubber Duck: bright yellow + sky blue (has a duck motif) --------------
   rubber_duck: {
     key: 'rubber_duck',
     name: 'Rubber Duck',
     mode: 'light',
     radius: round,
+    motif: 'duck', // shows a rubber duck on this theme
     gradient: ['#FFD23F', '#FFE890'],
     colors: {
       bg: '#FFE266',
       bgAlt: '#FFFBE8',
       bgInset: '#FFF0A6',
-      primary: '#1FA6DE',
+      primary: '#1FA6DE', // sky-blue (pops against the yellow)
       onPrimary: '#FFFFFF',
-      secondary: '#F2B705',
-      accent: '#FF7A3D',
+      secondary: '#F2B705', // duck yellow
+      accent: '#FF7A3D', // beak orange
       text: '#3A3206',
       textMuted: '#8A7A2E',
       border: '#F3DD78',
@@ -220,6 +288,64 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(180,150,30,0.2)',
     },
   },
+
+  // --- Glass: frosted, see-through "glassmorphism" --------------------------
+  // The background is a colorful gradient (Screen.tsx draws it) and the cards
+  // are frosted blur (Card.tsx draws them with expo-blur).
+  glass: {
+    key: 'glass',
+    name: 'Glass',
+    mode: 'light',
+    radius: round,
+    surface: 'glass', // <- turns on the frosted-blur card texture
+    gradient: ['#A9C9FF', '#FFBBEC'], // dreamy blue -> pink behind the glass
+    colors: {
+      bg: '#CDD9F5',
+      bgAlt: '#EAF0FB', // used for the tab bar etc. (cards use blur instead)
+      bgInset: '#E0E8F7',
+      primary: '#5B6CF0',
+      onPrimary: '#FFFFFF',
+      secondary: '#8FA3F2',
+      accent: '#E26DBE',
+      text: '#232A4A',
+      textMuted: '#5C6488',
+      border: 'rgba(255,255,255,0.65)', // bright glassy edge
+      like: '#E8467F',
+      success: '#2FA98C',
+      danger: '#E5564E',
+      shadow: 'rgba(60,70,140,0.22)',
+    },
+  },
+
+  // --- Metallic: brushed steel + chrome -------------------------------------
+  // Cards use a 3-color sheen gradient (`surfaceGradient`) for a metal look.
+  metallic: {
+    key: 'metallic',
+    name: 'Metallic',
+    mode: 'light',
+    radius: soft,
+    surface: 'metallic', // <- turns on the brushed-metal card texture
+    surfaceGradient: ['#F4F6F8', '#CBD1D8', '#E6E9ED'], // light -> mid -> light sheen
+    gradient: ['#E9ECF0', '#C3C9D1'], // steel background gradient
+    colors: {
+      bg: '#DCE0E6',
+      bgAlt: '#E4E7EC',
+      bgInset: '#D2D7DE',
+      primary: '#4B535C', // gunmetal
+      onPrimary: '#FFFFFF',
+      secondary: '#8A929C', // steel
+      accent: '#C9A23F', // brushed gold pop
+      text: '#23282E',
+      textMuted: '#5E6670',
+      border: '#B9C0C9',
+      like: '#D14B6A',
+      success: '#3E9E78',
+      danger: '#D64550',
+      shadow: 'rgba(40,50,60,0.22)',
+    },
+  },
+
+  // --- Mono: clean black & white minimal ------------------------------------
   mono: {
     key: 'mono',
     name: 'Mono',
@@ -243,6 +369,8 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(20,20,25,0.12)',
     },
   },
+
+  // --- Dark Red: moody crimson (dark mode) ----------------------------------
   dark_red: {
     key: 'dark_red',
     name: 'Dark Red',
@@ -266,6 +394,8 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
       shadow: 'rgba(0,0,0,0.45)',
     },
   },
+
+  // --- Emo: dark + violet (dark mode) ---------------------------------------
   emo: {
     key: 'emo',
     name: 'Emo',
@@ -291,7 +421,10 @@ export const THEMES: Record<ThemeKey, ThemeTokens> = {
   },
 };
 
-/** Display order for the theme picker. */
+/**
+ * The order themes appear in the picker. Add new theme keys here too,
+ * or reorder to taste.
+ */
 export const THEME_ORDER: ThemeKey[] = [
   'pink_cute',
   'lavender',
@@ -300,12 +433,16 @@ export const THEME_ORDER: ThemeKey[] = [
   'earthy',
   'cat',
   'rubber_duck',
+  'glass',
+  'metallic',
   'mono',
   'dark_red',
   'emo',
 ];
 
+// The theme new users start on. Change this to set a different default.
 export const DEFAULT_THEME: ThemeKey = 'pink_cute';
 
+/** Look up a theme by key, falling back to the default if it's missing. */
 export const getTheme = (key?: string | null): ThemeTokens =>
   (key && (THEMES as Record<string, ThemeTokens>)[key]) || THEMES[DEFAULT_THEME];
