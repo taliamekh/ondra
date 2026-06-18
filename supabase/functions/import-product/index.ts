@@ -1,17 +1,34 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-// import-product: given a product URL, fetch the page server-side and read its
-// title / image / price / availability from JSON-LD or OpenGraph tags, then
-// upsert it into the shared catalog. Web fetch must run server-side (browsers
-// block cross-site requests, and we keep scraping off the client).
+// import-product: resolve a product URL into { name, image, price, ... } from
+// JSON-LD / OpenGraph, then upsert it into the shared catalog.
+//
+// Many big retailers (Levi's, Veja, Madewell, anything behind Cloudflare/Akamai)
+// block server-side fetches from datacenter IPs. To make ALL brands accessible we
+// try, in order:
+//   1. a direct fetch with realistic browser headers,
+//   2. a paid rendering proxy IF a SCRAPER_API_KEY secret is set (ScraperAPI —
+//      renders JS + rotates residential IPs; near-100% coverage),
+//   3. the Wayback Machine archive (archive.org fetches the page, not us — free),
+// using whichever first returns a usable product image.
 
-const DQ = String.fromCharCode(34); // double quote
-const SQ = String.fromCharCode(39); // single quote
+const DQ = String.fromCharCode(34);
+const SQ = String.fromCharCode(39);
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Upgrade-Insecure-Requests': '1',
 };
 
 function json(body: unknown, status = 200) {
@@ -30,8 +47,6 @@ function decodeEntities(s: unknown): string {
     .trim();
 }
 
-// Read an attribute value from one tag, detecting the quote char at runtime so
-// we never have to put a quote character inside a regular expression.
 function attr(tag: string, name: string): string | undefined {
   const i = tag.toLowerCase().indexOf(name + '=');
   if (i < 0) return undefined;
@@ -80,7 +95,7 @@ function jsonLdProduct(html: string): any {
       });
       if (product) return product;
     } catch (_e) {
-      // skip unparseable block
+      // skip
     }
   }
   return null;
@@ -107,12 +122,12 @@ function firstImage(v: any): string | undefined {
 function guessCategory(text: string): string {
   const t = (text || '').toLowerCase();
   const has = (...ws: string[]) => ws.some((w) => t.indexOf(w) >= 0);
-  if (has('sneaker', 'shoe', 'boot', 'heel', 'loafer', 'sandal', 'trainer', 'footwear')) return 'shoes';
+  if (has('sneaker', 'shoe', 'boot', 'heel', 'loafer', 'sandal', 'trainer', 'footwear', 'runner')) return 'shoes';
   if (has('dress', 'gown')) return 'dress';
-  if (has('jean', 'trouser', 'pant', 'short', 'skirt', 'chino', 'cargo')) return 'bottom';
-  if (has('legging', 'activewear', 'yoga', 'sportswear')) return 'activewear';
+  if (has('jean', 'trouser', 'pant', 'short', 'skirt', 'chino', 'cargo', 'legging')) return 'bottom';
+  if (has('activewear', 'yoga', 'sportswear', 'sports bra')) return 'activewear';
   if (has('coat', 'jacket', 'blazer', 'parka', 'puffer', 'overcoat')) return 'outerwear';
-  if (has('shirt', 'tee', 'blouse', 'sweater', 'hoodie', 'cardigan', 'knit', 'tank', 'polo', 'jumper', 'top')) return 'top';
+  if (has('shirt', 'tee', 'blouse', 'sweater', 'hoodie', 'cardigan', 'knit', 'tank', 'polo', 'jumper', 'crew', 'top')) return 'top';
   if (has('bag', 'tote', 'backpack', 'purse', 'clutch', 'crossbody')) return 'bag';
   if (has('hat', 'cap', 'beanie', 'bucket')) return 'hat';
   if (has('ring', 'necklace', 'earring', 'bracelet', 'jewel')) return 'jewelry';
@@ -121,7 +136,6 @@ function guessCategory(text: string): string {
   return 'other';
 }
 
-// Block private / internal hosts (basic SSRF protection).
 function blockedHost(h: string): boolean {
   h = h.toLowerCase();
   if (h === 'localhost' || h.endsWith('.local')) return true;
@@ -151,6 +165,92 @@ function toPrice(v: unknown): number | null {
   return isNaN(n) || n === 0 ? null : n;
 }
 
+// Did the page come back as a bot-block / challenge instead of the product?
+function looksBlocked(html: string, status: number): boolean {
+  if (status >= 400) return true;
+  const h = html.slice(0, 8000).toLowerCase();
+  return [
+    'access denied',
+    'attention required',
+    'just a moment',
+    'are you a robot',
+    'verify you are a human',
+    'captcha',
+    'cf-browser-verification',
+    'enable javascript and cookies',
+  ].some((m) => h.indexOf(m) >= 0);
+}
+
+function badName(name: string | undefined): boolean {
+  if (!name) return true;
+  const n = name.toLowerCase();
+  return ['access denied', 'attention required', 'just a moment', 'forbidden', 'not found', '404', 'error', 'denied'].some((m) => n.indexOf(m) >= 0);
+}
+
+// Strip the Wayback Machine prefix so we keep the ORIGINAL CDN image URL
+// (e.g. .../web/20260410203216im_/https://lsco.scene7.com/... -> https://lsco.scene7.com/...).
+function stripWayback(u: string): string {
+  const m = u.indexOf('web.archive.org/web/');
+  if (m < 0) return u;
+  const slash = u.indexOf('/', m + 'web.archive.org/web/'.length);
+  return slash < 0 ? u : u.slice(slash + 1);
+}
+
+interface Parsed {
+  name: string;
+  image: string | null;
+  brand: string | null;
+  price: number | null;
+  currency: string;
+  inStock: boolean;
+  source: string | null;
+  category: string;
+}
+
+function parse(html: string): Parsed {
+  const ld = jsonLdProduct(html);
+  const meta = metaMap(html);
+  const name = (ld && ld.name && decodeEntities(ld.name)) || meta['og:title'] || meta['twitter:title'] || titleText(html) || 'Imported item';
+  const image = (ld && firstImage(ld.image)) || meta['og:image'] || meta['twitter:image'] || null;
+  const brand = (ld && (typeof ld.brand === 'object' ? ld.brand && ld.brand.name : ld.brand)) || meta['og:brand'] || null;
+  let offer = ld && ld.offers;
+  if (Array.isArray(offer)) offer = offer[0];
+  const price = toPrice(offer && (offer.price || offer.lowPrice)) ?? toPrice(meta['product:price:amount']) ?? toPrice(meta['og:price:amount']);
+  const currency = (offer && offer.priceCurrency) || meta['product:price:currency'] || 'USD';
+  const avail = String((offer && offer.availability) || meta['product:availability'] || meta['og:availability'] || '').toLowerCase();
+  const inStock = !(avail.indexOf('outofstock') >= 0 || avail.indexOf('out_of_stock') >= 0 || avail.indexOf('soldout') >= 0 || avail.indexOf('out of stock') >= 0);
+  return { name: String(name).slice(0, 200), image, brand, price, currency, inStock, source: meta['og:site_name'] || null, category: guessCategory(name + ' ' + (ld?.category ?? '')) };
+}
+
+async function safe<T>(p: Promise<T>): Promise<T | null> {
+  try {
+    return await p;
+  } catch (_e) {
+    return null;
+  }
+}
+
+async function fetchDirect(url: string): Promise<{ status: number; html: string }> {
+  const res = await fetch(url, { headers: BROWSER_HEADERS, redirect: 'follow' });
+  return { status: res.status, html: (await res.text()).slice(0, 900000) };
+}
+
+async function fetchScraper(url: string, key: string): Promise<string | null> {
+  // ScraperAPI-compatible: renders JS + rotates residential IPs.
+  const api = 'http://api.scraperapi.com/?api_key=' + key + '&url=' + encodeURIComponent(url);
+  const res = await fetch(api);
+  return res.ok ? (await res.text()).slice(0, 900000) : null;
+}
+
+async function fetchWayback(url: string): Promise<string | null> {
+  const a = await fetch('https://archive.org/wayback/available?url=' + encodeURIComponent(url));
+  const j = await a.json();
+  const snap = j && j.archived_snapshots && j.archived_snapshots.closest;
+  if (!snap || !snap.available || !snap.url) return null;
+  const res = await fetch(snap.url, { redirect: 'follow' });
+  return res.ok ? (await res.text()).slice(0, 1500000) : null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405);
@@ -164,70 +264,77 @@ Deno.serve(async (req: Request) => {
   if (!url) return json({ error: 'Missing url' }, 400);
 
   const normalized = normalizeUrl(url);
-  let parsed: URL;
+  let parsedUrl: URL;
   try {
-    parsed = new URL(normalized);
+    parsedUrl = new URL(normalized);
   } catch (_e) {
     return json({ error: 'Invalid URL' }, 400);
   }
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return json({ error: 'URL not allowed' }, 400);
-  if (blockedHost(parsed.hostname)) return json({ error: 'URL not allowed' }, 400);
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') return json({ error: 'URL not allowed' }, 400);
+  if (blockedHost(parsedUrl.hostname)) return json({ error: 'URL not allowed' }, 400);
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
 
-  // 1) Already in the catalog? Return it and bump popularity.
   const existing = await supabase.from('catalog_items').select('*').eq('normalized_url', normalized).maybeSingle();
   if (existing.data) {
     await supabase.from('catalog_items').update({ times_added: (existing.data.times_added || 0) + 1 }).eq('id', existing.data.id);
     return json({ source: 'catalog', item: existing.data });
   }
 
-  // 2) Fetch + parse the page.
-  let html = '';
-  try {
-    const res = await fetch(normalized, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-      redirect: 'follow',
-    });
-    html = (await res.text()).slice(0, 800000);
-  } catch (e) {
-    return json({ error: 'Could not reach the page', detail: String(e) }, 502);
+  let parsed: Parsed | null = null;
+  let via = 'web';
+
+  // 1) Direct fetch.
+  const direct = await safe(fetchDirect(normalized));
+  if (direct && !looksBlocked(direct.html, direct.status)) parsed = parse(direct.html);
+
+  const needFallback = () => !parsed || !parsed.image || badName(parsed.name);
+
+  // 2) Paid rendering proxy (only if a key is configured).
+  if (needFallback()) {
+    const key = Deno.env.get('SCRAPER_API_KEY') || Deno.env.get('SCRAPINGBEE_API_KEY');
+    if (key) {
+      const sh = await safe(fetchScraper(normalized, key));
+      if (sh) {
+        const p = parse(sh);
+        if (p.image && !badName(p.name)) {
+          parsed = p;
+          via = 'proxy';
+        }
+      }
+    }
   }
 
-  const ld = jsonLdProduct(html);
-  const meta = metaMap(html);
-  const host = parsed.hostname.indexOf('www.') === 0 ? parsed.hostname.slice(4) : parsed.hostname;
+  // 3) Wayback Machine archive (free, bypasses IP blocks).
+  if (needFallback()) {
+    const wh = await safe(fetchWayback(normalized));
+    if (wh) {
+      const p = parse(wh);
+      if (p.image) {
+        p.image = stripWayback(p.image);
+        parsed = p;
+        via = 'archive';
+      }
+    }
+  }
 
-  const name = (ld && ld.name && decodeEntities(ld.name)) || meta['og:title'] || meta['twitter:title'] || titleText(html) || 'Imported item';
-  const image = (ld && firstImage(ld.image)) || meta['og:image'] || meta['twitter:image'] || null;
-  const brand = (ld && (typeof ld.brand === 'object' ? ld.brand && ld.brand.name : ld.brand)) || meta['og:brand'] || null;
+  if (!parsed) parsed = { name: 'Imported item', image: null, brand: null, price: null, currency: 'USD', inStock: true, source: null, category: 'other' };
 
-  let offer = ld && ld.offers;
-  if (Array.isArray(offer)) offer = offer[0];
-  const price = toPrice(offer && offer.price) ?? toPrice(meta['product:price:amount']);
-  const currency = (offer && offer.priceCurrency) || meta['product:price:currency'] || 'USD';
-  const avail = String((offer && offer.availability) || meta['product:availability'] || meta['og:availability'] || '').toLowerCase();
-  const inStock = !(avail.indexOf('outofstock') >= 0 || avail.indexOf('out_of_stock') >= 0 || avail.indexOf('soldout') >= 0 || avail.indexOf('out of stock') >= 0);
-  const source = meta['og:site_name'] || host || null;
-  const category = guessCategory(name + ' ' + ((ld && ld.category) || ''));
-
+  const host = parsedUrl.hostname.indexOf('www.') === 0 ? parsedUrl.hostname.slice(4) : parsedUrl.hostname;
   const row = {
     normalized_url: normalized,
-    name: String(name).slice(0, 200),
-    brand,
-    price,
-    currency,
-    source,
+    name: parsed.name,
+    brand: parsed.brand,
+    price: parsed.price,
+    currency: parsed.currency,
+    source: parsed.source || host,
     buy_url: url,
-    image_url: image,
-    category,
-    in_stock: inStock,
+    image_url: parsed.image,
+    category: parsed.category,
+    in_stock: parsed.inStock,
     last_checked_at: new Date().toISOString(),
     times_added: 1,
   };
   const up = await supabase.from('catalog_items').upsert(row, { onConflict: 'normalized_url' }).select().single();
-  return json({ source: 'web', item: up.data || row });
+  return json({ source: via, item: up.data || row });
 });

@@ -97,6 +97,14 @@ shows which mode you're in.
   title / image / price / availability and adds it to the catalog), and the **monthly
   catalog refresh** (pg_cron → `refresh-catalog`, which flags discontinued items
   `in_stock = false` without ever deleting them).
+  - **Reaching bot-blocked retailers:** many big stores (Levi's, Veja, Madewell,
+    anything behind Cloudflare) block server-side fetches from datacenter IPs.
+    `import-product` works around this with a fallback chain: a direct fetch with
+    browser headers (Shopify + most stores) → the **Wayback Machine** archive
+    (archive.org does the fetch, so it recovers e.g. Levi's product photos for
+    **free**) → an optional rendering proxy for the hardest sites if you set a
+    `SCRAPER_API_KEY` secret: `npx supabase secrets set SCRAPER_API_KEY=<key>`
+    (e.g. a free ScraperAPI key — renders JS + rotates residential IPs).
 - 🟡 **Mocked, with clean swap-in points:**
   - **Camera scan recognition** ([`src/lib/identify.ts`](src/lib/identify.ts)) simulates a
     vision + product-search pipeline. Replace the function body with a real
