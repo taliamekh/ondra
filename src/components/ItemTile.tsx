@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { isHex, readableOn } from '@/lib/colors';
-import { seedFromString, stockImage } from '@/lib/stockImage';
 import { useTheme } from '@/theme';
 
 import { GarmentIcon } from './GarmentIcon';
@@ -18,28 +17,26 @@ interface Props {
 }
 
 /**
- * Square thumbnail for a garment. Shows, in order of preference:
- *   1. the item's real photo (from a scan / pasted link / catalog),
- *   2. a representative clothing photo for its category (placeholder),
- *   3. the themed garment icon (only if both images fail to load).
+ * Square thumbnail for a garment.
+ *
+ * Shows ONLY a real photo of the item — one that came from a camera scan, a
+ * pasted product link's og:image, or the catalog. If there is no real photo (or
+ * it fails to load), it shows the clean themed garment icon. We never substitute
+ * a generic / stock image, because that would show something that isn't the item.
  */
 export function ItemTile({ imageUrl, color, category = 'other', size = 80, radius, style }: Props) {
   const theme = useTheme();
   const r = radius ?? theme.radius.md;
+  const [failed, setFailed] = useState(false);
 
-  // A stable placeholder photo for this item (same item -> same photo).
-  const stock = stockImage(category, seedFromString((isHex(color) ? (color as string) : '') + category));
+  // Reset the error state if the URL changes (tile reused in a list).
+  useEffect(() => setFailed(false), [imageUrl]);
 
-  const [stage, setStage] = useState<'primary' | 'stock' | 'icon'>(imageUrl ? 'primary' : 'stock');
-  useEffect(() => setStage(imageUrl ? 'primary' : 'stock'), [imageUrl]);
-
-  const uri = stage === 'primary' ? imageUrl : stage === 'stock' ? stock : null;
-
-  if (uri) {
+  if (imageUrl && !failed) {
     return (
       <Image
-        source={{ uri }}
-        onError={() => setStage((s) => (s === 'primary' ? 'stock' : 'icon'))}
+        source={{ uri: imageUrl }}
+        onError={() => setFailed(true)}
         style={[{ width: size, height: size, borderRadius: r, backgroundColor: theme.colors.bgInset }, style as object]}
         contentFit="cover"
         transition={150}
@@ -47,6 +44,7 @@ export function ItemTile({ imageUrl, color, category = 'other', size = 80, radiu
     );
   }
 
+  // No real photo -> clean themed icon (not a stock photo).
   const hasColor = isHex(color);
   const bg = hasColor ? (color as string) : theme.colors.bgInset;
   const iconColor = hasColor ? readableOn(color as string) : theme.colors.textMuted;

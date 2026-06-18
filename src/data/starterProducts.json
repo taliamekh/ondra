@@ -1,0 +1,110 @@
+[
+  {
+    "name": "The Organic Cotton Crew | White",
+    "image": "http://www.everlane.com/cdn/shop/files/60eb86d7_5480.jpg?v=1753411489",
+    "url": "https://www.everlane.com/products/mens-organic-cotton-crew-tee-white",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "top"
+  },
+  {
+    "name": "The Classic Crew in Cashmere | Black",
+    "image": "http://www.everlane.com/cdn/shop/files/636dec39_5db7.jpg?v=1753411596",
+    "url": "https://www.everlane.com/products/womens-cashmere-classic-crew-sweater-black",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "top"
+  },
+  {
+    "name": "The Classic Oxford Shirt | Light Blue | Standard",
+    "image": "http://www.everlane.com/cdn/shop/files/a430bf99_57e0.jpg?v=1753411504",
+    "url": "https://www.everlane.com/products/mens-organic-oxford-shirt-light-blue",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "top"
+  },
+  {
+    "name": "The Way-High® Jean | Vintage Indigo | 27.5” Inseam",
+    "image": "http://www.everlane.com/cdn/shop/files/dff4434f_547b.jpg?v=1753411453",
+    "url": "https://www.everlane.com/products/womens-way-high-jean-ind",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "bottom"
+  },
+  {
+    "name": "The Wide Leg Dream Pant® | Black",
+    "image": "http://www.everlane.com/cdn/shop/files/adae7577_2d47.jpg?v=1753411495",
+    "url": "https://www.everlane.com/products/womens-dream-pant-wide-leg-black",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "bottom"
+  },
+  {
+    "name": "The Organic Cotton Waisted Dress | Black",
+    "image": "http://www.everlane.com/cdn/shop/files/4f67dee4_f05a.jpg?v=1753411541",
+    "url": "https://www.everlane.com/products/womens-organic-cotton-a-line-dress-black",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "dress"
+  },
+  {
+    "name": "The Cocoon Crew in Alpaca | Almond",
+    "image": "http://www.everlane.com/cdn/shop/files/01d15ab2_0648.jpg?v=1763683204",
+    "url": "https://www.everlane.com/products/womens-alpaca-ribbed-cocoon-crew-almond",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "outerwear"
+  },
+  {
+    "name": "Women's Wool Runner - Natural White (Cream Sole)",
+    "image": "http://www.allbirds.com/cdn/shop/files/Allbirds_WL_RN_SF_PDP_Natural_White_LAT.png?v=1751143820",
+    "url": "https://www.allbirds.com/products/womens-wool-runners-natural-white",
+    "source": "Allbirds",
+    "price": null,
+    "inStock": true,
+    "category": "shoes"
+  },
+  {
+    "name": "The Modern Loafer | Black",
+    "image": "http://www.everlane.com/cdn/shop/files/e1c2d6c9_3a55.jpg?v=1753411641",
+    "url": "https://www.everlane.com/products/womens-leather-modern-loafer-black",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "shoes"
+  },
+  {
+    "name": "The Luxe Medium Italian Leather Tote | Black",
+    "image": "http://www.everlane.com/cdn/shop/files/811a98d7_a0f2.jpg?v=1753411539",
+    "url": "https://www.everlane.com/products/womens-day-market-tote-black",
+    "source": "Everlane",
+    "price": null,
+    "inStock": true,
+    "category": "bag"
+  },
+  {
+    "name": "Black Compressive High-Rise Legging",
+    "image": "https://girlfriend.com/cdn/shop/files/4008_4007_HRLegging_M_Black_8_web_1667x.jpg?v=1744659543",
+    "url": "https://girlfriend.com/products/black-compressive-high-rise-legging",
+    "source": "Girlfriend Collective",
+    "price": 108,
+    "inStock": true,
+    "category": "activewear"
+  },
+  {
+    "name": "Black Paloma Racerback Bra",
+    "image": "https://girlfriend.com/cdn/shop/files/1002_PalomaBra_M_Black_20_web_1667x.jpg?v=1744659449",
+    "url": "https://girlfriend.com/products/black-paloma-racerback-bra",
+    "source": "Girlfriend Collective",
+    "price": 68,
+    "inStock": true,
+    "category": "activewear"
+  }
+]

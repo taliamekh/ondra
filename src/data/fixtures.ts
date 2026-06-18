@@ -1,35 +1,79 @@
+import type { CategoryId, OccasionId, SeasonId, StyleId } from '@/constants/catalog';
 import { newId } from '@/lib/id';
 import type { FeedPost, ItemSnapshot, Outfit, OutfitItem } from '@/types/models';
 
 import type { NewClothingItem } from './repository';
+// Real products resolved once from Shopify stores via the import-product Edge
+// Function (name, photo URL, buy link). Regenerate with the script in the PR
+// notes if products go stale. Order matches STARTER_META below.
+import STARTER_PRODUCTS from './starterProducts.json';
 
 /**
- * A starter wardrobe seeded for brand-new users so the closet and the outfit
- * generator feel alive immediately. Users can edit or delete any of these.
- * (Items have no photo, so ItemTile shows a representative category photo.)
+ * Wardrobe metadata for the starter closet (category, warmth, formality, etc.),
+ * paired by index with the real product photo + buy link in starterProducts.json.
+ * Edit these to change what new users start with.
  */
-export const STARTER_CLOSET: NewClothingItem[] = [
-  { name: 'Everyday white tee', category: 'top', colors: ['#F5F5F5'], brand: 'Uniqlo', price: 15, source: 'Uniqlo', buyUrl: 'https://www.uniqlo.com', warmth: 2, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'work'], styleTags: ['minimalist', 'casual'] },
-  { name: 'Black ribbed tank', category: 'top', colors: ['#1A1A1A'], brand: 'Aritzia', price: 35, source: 'Aritzia', buyUrl: 'https://www.aritzia.com', warmth: 1, formality: 2, seasons: ['spring', 'summer'], occasions: ['casual', 'date', 'party'], styleTags: ['minimalist', 'glam'] },
-  { name: 'Oversized knit sweater', category: 'top', colors: ['#C8B6A6'], brand: 'COS', price: 89, source: 'COS', buyUrl: 'https://www.cos.com', warmth: 4, formality: 2, seasons: ['fall', 'winter'], occasions: ['casual', 'school', 'work'], styleTags: ['minimalist', 'academia'] },
-  { name: 'Striped oxford shirt', category: 'top', colors: ['#9DB4D4'], brand: 'J.Crew', price: 78, source: 'J.Crew', buyUrl: 'https://www.jcrew.com', warmth: 2, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'school', 'brunch'], styleTags: ['preppy', 'old_money'] },
-  { name: 'Straight-leg jeans', category: 'bottom', colors: ['#5B7DA6'], brand: "Levi's", price: 98, source: "Levi's", buyUrl: 'https://www.levi.com', warmth: 3, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'date', 'brunch'], styleTags: ['casual', 'vintage', 'streetwear'] },
-  { name: 'Tailored trousers', category: 'bottom', colors: ['#23232A'], brand: 'Aritzia', price: 128, source: 'Aritzia', buyUrl: 'https://www.aritzia.com', warmth: 3, formality: 4, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'date', 'formal'], styleTags: ['minimalist', 'old_money'] },
-  { name: 'Pleated mini skirt', category: 'bottom', colors: ['#6B2737'], brand: 'Princess Polly', price: 55, source: 'Princess Polly', buyUrl: 'https://www.princesspolly.com', warmth: 2, formality: 3, seasons: ['spring', 'summer', 'fall'], occasions: ['date', 'party', 'school'], styleTags: ['coquette', 'y2k', 'academia'] },
-  { name: 'Cargo pants', category: 'bottom', colors: ['#6E6B5E'], brand: 'Carhartt WIP', price: 98, source: 'Carhartt', buyUrl: 'https://www.carhartt-wip.com', warmth: 3, formality: 1, seasons: ['spring', 'fall'], occasions: ['casual'], styleTags: ['streetwear', 'techwear', 'gorpcore'] },
-  { name: 'Little black dress', category: 'dress', colors: ['#161616'], brand: 'Reformation', price: 178, source: 'Reformation', buyUrl: 'https://www.thereformation.com', warmth: 2, formality: 4, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['date', 'party', 'formal'], styleTags: ['glam', 'minimalist'] },
-  { name: 'Floral midi dress', category: 'dress', colors: ['#D98AA6'], brand: 'Sézane', price: 165, source: 'Sézane', buyUrl: 'https://www.sezane.com', warmth: 2, formality: 3, seasons: ['spring', 'summer'], occasions: ['brunch', 'date', 'casual'], styleTags: ['cottagecore', 'boho'] },
-  { name: 'Denim jacket', category: 'outerwear', colors: ['#7C97B8'], brand: "Levi's", price: 110, source: "Levi's", buyUrl: 'https://www.levi.com', warmth: 3, formality: 2, seasons: ['spring', 'fall'], occasions: ['casual', 'school'], styleTags: ['casual', 'vintage'] },
-  { name: 'Wool overcoat', category: 'outerwear', colors: ['#2B2B30'], brand: 'Mango', price: 199, source: 'Mango', buyUrl: 'https://shop.mango.com', warmth: 5, formality: 4, seasons: ['winter'], occasions: ['work', 'formal', 'date'], styleTags: ['minimalist', 'old_money'] },
-  { name: 'White leather sneakers', category: 'shoes', colors: ['#FAFAFA'], brand: 'Common Projects', price: 215, source: 'SSENSE', buyUrl: 'https://www.ssense.com', warmth: 2, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'work', 'brunch'], styleTags: ['minimalist', 'streetwear'] },
-  { name: 'Black ankle boots', category: 'shoes', colors: ['#1C1C1C'], brand: 'Dr. Martens', price: 170, source: 'Dr. Martens', buyUrl: 'https://www.drmartens.com', warmth: 3, formality: 3, seasons: ['fall', 'winter'], occasions: ['casual', 'date', 'party'], styleTags: ['grunge', 'streetwear'] },
-  { name: 'Strappy heels', category: 'shoes', colors: ['#C9A14A'], brand: 'Steve Madden', price: 95, source: 'Steve Madden', buyUrl: 'https://www.stevemadden.com', warmth: 1, formality: 5, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['party', 'formal', 'date'], styleTags: ['glam'] },
-  { name: 'Leather tote', category: 'bag', colors: ['#6B4F3A'], brand: 'Madewell', price: 168, source: 'Madewell', buyUrl: 'https://www.madewell.com', warmth: 3, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'school', 'travel'], styleTags: ['old_money', 'minimalist'] },
-  { name: 'Gold hoop earrings', category: 'jewelry', colors: ['#D4AF37'], brand: 'Mejuri', price: 75, source: 'Mejuri', buyUrl: 'https://www.mejuri.com', warmth: 3, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['date', 'party', 'work'], styleTags: ['glam', 'minimalist'] },
-  { name: 'Seamless leggings', category: 'activewear', colors: ['#23232A'], brand: 'Lululemon', price: 98, source: 'Lululemon', buyUrl: 'https://shop.lululemon.com', warmth: 2, formality: 1, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['gym', 'climbing', 'lounge'], styleTags: ['athleisure'] },
-  { name: 'Sports tank', category: 'activewear', colors: ['#3A6E8F'], brand: 'Nike', price: 40, source: 'Nike', buyUrl: 'https://www.nike.com', warmth: 1, formality: 1, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['gym', 'climbing'], styleTags: ['athleisure'] },
-  { name: 'Trail runners', category: 'shoes', colors: ['#4A5D3A'], brand: 'Salomon', price: 145, source: 'Salomon', buyUrl: 'https://www.salomon.com', warmth: 2, formality: 1, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['gym', 'climbing', 'travel'], styleTags: ['gorpcore', 'athleisure'] },
+const STARTER_META: {
+  name: string;
+  brand: string;
+  category: CategoryId;
+  colors: string[];
+  price: number;
+  warmth: number;
+  formality: number;
+  seasons: SeasonId[];
+  occasions: OccasionId[];
+  styleTags: StyleId[];
+}[] = [
+  { name: 'Organic cotton crew tee', brand: 'Everlane', category: 'top', colors: ['#F5F5F5'], price: 30, warmth: 2, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'work'], styleTags: ['minimalist', 'casual'] },
+  { name: 'Cashmere crew sweater', brand: 'Everlane', category: 'top', colors: ['#2A2A2A'], price: 130, warmth: 4, formality: 3, seasons: ['fall', 'winter'], occasions: ['work', 'casual', 'date'], styleTags: ['minimalist', 'old_money'] },
+  { name: 'Classic oxford shirt', brand: 'Everlane', category: 'top', colors: ['#A9C3E0'], price: 80, warmth: 2, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'school', 'brunch'], styleTags: ['preppy', 'old_money'] },
+  { name: 'Way-High jeans', brand: 'Everlane', category: 'bottom', colors: ['#39507A'], price: 98, warmth: 3, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'date', 'brunch'], styleTags: ['casual', 'vintage'] },
+  { name: 'Wide-leg dream pant', brand: 'Everlane', category: 'bottom', colors: ['#1A1A1A'], price: 98, warmth: 3, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'casual', 'travel', 'lounge'], styleTags: ['minimalist'] },
+  { name: 'Organic cotton waisted dress', brand: 'Everlane', category: 'dress', colors: ['#161616'], price: 90, warmth: 2, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['date', 'brunch', 'casual', 'party'], styleTags: ['minimalist', 'glam'] },
+  { name: 'Cocoon alpaca crew', brand: 'Everlane', category: 'outerwear', colors: ['#D8C3A5'], price: 150, warmth: 5, formality: 3, seasons: ['fall', 'winter'], occasions: ['casual', 'work', 'date'], styleTags: ['minimalist', 'cottagecore'] },
+  { name: 'Wool runners', brand: 'Allbirds', category: 'shoes', colors: ['#F2F2F2'], price: 98, warmth: 2, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'travel', 'gym'], styleTags: ['casual', 'athleisure', 'minimalist'] },
+  { name: 'Modern leather loafer', brand: 'Everlane', category: 'shoes', colors: ['#1C1C1C'], price: 168, warmth: 3, formality: 4, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'date', 'formal', 'brunch'], styleTags: ['old_money', 'minimalist'] },
+  { name: 'Luxe leather tote', brand: 'Everlane', category: 'bag', colors: ['#1A1A1A'], price: 200, warmth: 3, formality: 3, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['work', 'school', 'travel'], styleTags: ['old_money', 'minimalist'] },
+  { name: 'Compressive leggings', brand: 'Girlfriend Collective', category: 'bottom', colors: ['#1A1A1A'], price: 108, warmth: 2, formality: 1, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['gym', 'climbing', 'lounge', 'casual'], styleTags: ['athleisure'] },
+  { name: 'Paloma sports bra', brand: 'Girlfriend Collective', category: 'activewear', colors: ['#1A1A1A'], price: 68, warmth: 1, formality: 1, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['gym', 'climbing'], styleTags: ['athleisure'] },
 ];
+
+interface RawProduct {
+  name: string | null;
+  image: string | null;
+  url: string | null;
+  source: string | null;
+  price: number | null;
+  inStock: boolean;
+  category: string;
+}
+
+/**
+ * A starter wardrobe of REAL products (Everlane / Allbirds / Girlfriend
+ * Collective) seeded for brand-new users — each with its real product photo and
+ * a working buy link. Users can edit or delete any of these.
+ */
+export const STARTER_CLOSET: NewClothingItem[] = STARTER_META.map((m, i) => {
+  const p = (STARTER_PRODUCTS as RawProduct[])[i] ?? ({} as RawProduct);
+  return {
+    name: m.name,
+    category: m.category,
+    colors: m.colors,
+    brand: m.brand,
+    price: p.price ?? m.price,
+    currency: 'USD',
+    source: p.source ?? m.brand,
+    buyUrl: p.url ?? null,
+    inStock: p.inStock ?? true,
+    imageUrl: p.image ? p.image.replace('http://', 'https://') : null,
+    warmth: m.warmth,
+    formality: m.formality,
+    seasons: m.seasons,
+    occasions: m.occasions,
+    styleTags: m.styleTags,
+  };
+});
 
 // ─── Demo social feed ────────────────────────────────────────────────────────
 
