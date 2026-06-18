@@ -8,6 +8,7 @@ import { ThemePicker } from '@/components/ThemePicker';
 import { Button, Card, Chip, Screen, Text } from '@/components/ui';
 import { STYLE_TYPES, type StyleId } from '@/constants/catalog';
 import { useData } from '@/data/DataProvider';
+import { STARTER_CLOSET } from '@/data/fixtures';
 import { useFocusQuery } from '@/hooks/useFocusQuery';
 import { Spacing, useTheme, useThemeControl } from '@/theme';
 
@@ -28,6 +29,7 @@ export default function Profile() {
   const { themeKey, setThemeKey } = useThemeControl();
 
   const [styles, setStyles] = useState<Set<StyleId>>(new Set(profile?.styleTypes ?? []));
+  const [reseeding, setReseeding] = useState(false);
 
   const stats = useFocusQuery(async () => {
     const [items, outfits, boards] = await Promise.all([repo.listItems(), repo.listOutfits(), repo.listBoards()]);
@@ -45,6 +47,19 @@ export default function Profile() {
   const pickTheme = (key: typeof themeKey) => {
     setThemeKey(key);
     updateProfile({ theme: key });
+  };
+
+  // Replace the closet with the fresh sample wardrobe (real products + photos).
+  const reloadSampleCloset = async () => {
+    setReseeding(true);
+    try {
+      const items = await repo.listItems();
+      await Promise.all(items.map((i) => repo.deleteItem(i.id)));
+      await repo.createItems(STARTER_CLOSET);
+      stats.reload();
+    } finally {
+      setReseeding(false);
+    }
   };
 
   return (
@@ -103,7 +118,11 @@ export default function Profile() {
             ? 'Your closet, outfits and boards are synced to Supabase and protected by row-level security.'
             : 'Running in offline mode. Enable anonymous sign-ins on your Supabase project to sync across devices.'}
         </Text>
-        <Button title="Start over" icon="refresh" variant="secondary" onPress={resetAccount} full />
+        <Button title="Reload sample closet" icon="sparkles" variant="secondary" onPress={reloadSampleCloset} loading={reseeding} full />
+        <Text variant="caption" muted>
+          Replaces your closet with the sample wardrobe of real products (real photos & buy links).
+        </Text>
+        <Button title="Start over" icon="refresh" variant="ghost" onPress={resetAccount} full />
       </Card>
 
       <Text variant="caption" muted center style={{ marginTop: Spacing.four }}>
