@@ -92,7 +92,11 @@ shows which mode you're in.
 ## 🧪 What's real vs. mocked
 
 - ✅ **Real:** weather (Open‑Meteo, no API key), the outfit generator, theming, all CRUD,
-  Supabase schema/RLS/storage, the data layer.
+  Supabase schema/RLS/storage, the data layer, the **shared product catalog**, the
+  **paste-a-link import** (the `import-product` Edge Function reads any store page's
+  title / image / price / availability and adds it to the catalog), and the **monthly
+  catalog refresh** (pg_cron → `refresh-catalog`, which flags discontinued items
+  `in_stock = false` without ever deleting them).
 - 🟡 **Mocked, with clean swap-in points:**
   - **Camera scan recognition** ([`src/lib/identify.ts`](src/lib/identify.ts)) simulates a
     vision + product-search pipeline. Replace the function body with a real

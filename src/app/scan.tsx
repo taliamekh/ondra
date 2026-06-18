@@ -6,9 +6,10 @@ import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 
 import { ItemTile } from '@/components/ItemTile';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { Button, Card, Chip, Screen, Text } from '@/components/ui';
+import { Button, Card, Chip, Input, Screen, Text } from '@/components/ui';
 import { Ionicons } from '@expo/vector-icons';
 
+import { importFromLink } from '@/lib/catalog';
 import { identifyGarment, type IdentifiedGarment, type IdentifyResult } from '@/lib/identify';
 import { Spacing, useTheme } from '@/theme';
 
@@ -24,6 +25,7 @@ export default function Scan() {
   const [image, setImage] = useState<string | null>(null);
   const [result, setResult] = useState<IdentifyResult | null>(null);
   const [chosen, setChosen] = useState<IdentifiedGarment | null>(null);
+  const [link, setLink] = useState('');
 
   const run = async (uri: string | null) => {
     setImage(uri);
@@ -75,6 +77,33 @@ export default function Scan() {
     });
   };
 
+  // Resolve a pasted product link via the import-product Edge Function, then
+  // hand the result to the editor (prefilled, with the real product photo).
+  const importLink = async () => {
+    const u = link.trim();
+    if (!u) return;
+    setImage(null);
+    setPhase('identifying');
+    const prod = await importFromLink(u);
+    if (!prod) {
+      setPhase('capture');
+      return;
+    }
+    router.replace({
+      pathname: '/item/new',
+      params: {
+        name: prod.name,
+        category: prod.category,
+        brand: prod.brand ?? '',
+        price: prod.price != null ? String(prod.price) : '',
+        source: prod.source ?? '',
+        buyUrl: prod.buyUrl ?? u,
+        inStock: String(prod.inStock),
+        image: prod.imageUrl ?? '',
+      },
+    });
+  };
+
   const canUseCamera = Platform.OS !== 'web' && perm?.granted;
 
   return (
@@ -105,6 +134,22 @@ export default function Scan() {
           {canUseCamera ? <Button title="Capture" icon="camera" onPress={capture} full size="lg" /> : null}
           <Button title="Upload a photo" icon="image-outline" variant="secondary" onPress={upload} full />
           <Button title="Try a demo scan" icon="sparkles" variant="ghost" onPress={() => run(null)} full />
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+            <Text variant="caption" muted>
+              or paste a link
+            </Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.border }} />
+          </View>
+          <Card style={{ gap: 10 }}>
+            <Text variant="label">Paste a product link</Text>
+            <Text variant="caption" muted>
+              From any store — we read the name, price, photo & buy link, and add it to the catalog.
+            </Text>
+            <Input placeholder="https://…" value={link} onChangeText={setLink} autoCapitalize="none" keyboardType="url" />
+            <Button title="Import from link" icon="link-outline" onPress={importLink} disabled={!link.trim()} full />
+          </Card>
         </View>
       )}
 

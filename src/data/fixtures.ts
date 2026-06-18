@@ -6,7 +6,7 @@ import type { NewClothingItem } from './repository';
 /**
  * A starter wardrobe seeded for brand-new users so the closet and the outfit
  * generator feel alive immediately. Users can edit or delete any of these.
- * `colors` holds hex values used for the placeholder tiles until a photo is added.
+ * (Items have no photo, so ItemTile shows a representative category photo.)
  */
 export const STARTER_CLOSET: NewClothingItem[] = [
   { name: 'Everyday white tee', category: 'top', colors: ['#F5F5F5'], brand: 'Uniqlo', price: 15, source: 'Uniqlo', buyUrl: 'https://www.uniqlo.com', warmth: 2, formality: 2, seasons: ['spring', 'summer', 'fall', 'winter'], occasions: ['casual', 'school', 'work'], styleTags: ['minimalist', 'casual'] },
